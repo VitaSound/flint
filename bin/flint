@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# flint launcher — restore the shell TTY after GForth exits.
+: "${FLINT_HOME:=$HOME/flint}"
+GFORTH="${GFORTH:-gforth}"
+
+reset_tty() {
+    local tty_path
+    tty_path=$(tty 2>/dev/null || true)
+
+    if [ -n "$tty_path" ] && [ "$tty_path" != "not a tty" ] && [ -r "$tty_path" ] && [ -w "$tty_path" ]; then
+        stty sane < "$tty_path" 2>/dev/null || true
+        printf '\033[?2004l' > "$tty_path" 2>/dev/null || true
+        local _ch
+        while IFS= read -r -s -t 0.02 -n 1 _ch < "$tty_path"; do
+            :
+        done
+    else
+        stty sane 2>/dev/null || true
+        printf '\033[?2004l' 2>/dev/null || true
+    fi
+}
+
+reset_tty
+
+if [ $# -eq 0 ]; then
+    FLINT_CMD=lint
+    FLINT_ARG=.
+else
+    FLINT_CMD=$1
+    shift
+    FLINT_ARG=${1:-.}
+fi
+export FLINT_CMD FLINT_ARG FLINT_HOME
+
+set +e
+# Add $FLINT_HOME to gforth's fpath (search path for `require`) so module
+# imports resolve no matter which directory the user invoked flint from.
+"$GFORTH" \
+    -e "s\" $FLINT_HOME\" fpath also-path" \
+    "$FLINT_HOME/flint.4th"
+status=$?
+set -e
+
+reset_tty
+exit "$status"

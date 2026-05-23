@@ -1,5 +1,7 @@
 # flint
 
+[Русская версия](README.ru.md)
+
 A small linter for Forth source trees.
 
 flint's only check (for now) is **duplicate word definitions across files,
@@ -21,15 +23,39 @@ flint is intentionally **dumb in the first pass**:
 Output is **warn-level only** — flint always exits with status 0. CI
 users who want a hard failure can `grep '\[WARN\]'` and react.
 
+Part of the [VitaSound Forth tooling
+family](https://github.com/VitaSound): [fmix](https://github.com/VitaSound/fmix)
+(build tool / package manager / test runner),
+[ttester](https://github.com/VitaSound/ttester) (testing utility,
+upstream Hayes/Ertl + VitaSound extensions),
+[fenum](https://github.com/VitaSound/fenum) (universal containers,
+used by flint for its records list), flint.
+
 ## Install
 
 ```bash
-git clone https://github.com/VitaSound/flint   # repository TBD
-ln -s "$PWD/flint/bin/flint" ~/.local/bin/flint   # or wherever
+cd ~ && git clone git@github.com:VitaSound/flint.git
+cd flint && fmix packages.get
+```
+
+Add to your `~/.bashrc` (or `~/.zshrc`):
+
+```bash
+# VitaSound Forth tooling
+export PATH="$HOME/fmix/bin:$HOME/flint/bin:$PATH"
+```
+
+Then `source ~/.bashrc` and verify:
+
+```bash
+flint version
 ```
 
 flint requires Gforth ≥ 0.7.9 and shells out to `find` for file
 discovery; both ship on every Linux/macOS box you're likely to use.
+
+If you keep flint somewhere other than `$HOME/flint`, set
+`$FLINT_HOME` before invoking `flint` (the launcher honours it).
 
 ## Usage
 
@@ -83,11 +109,11 @@ Add more in `flint/scan.4th : flint.defining?`.
 
 | File | What |
 |------|------|
-| `bin/flint` | bash launcher (TTY reset, env-var passing to gforth) |
+| `bin/flint` | bash launcher (TTY reset, env-var passing to gforth, `fpath` extension) |
 | `flint.4th` | entry point: arg parsing, command dispatch |
 | `flint/util.4th` | string + case helpers |
 | `flint/scan.4th` | per-file token scanner with `defer flint.on-defined-word` hook |
-| `flint/collect.4th` | linked-list of (file, word) records |
+| `flint/collect.4th` | records storage on top of [fenum](https://github.com/VitaSound/fenum)'s `ulist` (one struct per `(file, word)` pair) |
 | `flint/walk.4th` | `find -type f -name '*.4th'` → list of paths |
 | `flint/report.4th` | group records by name, print one WARN per real duplicate |
 
@@ -101,4 +127,4 @@ Fixtures live under `tests/fixtures/with_dupes/` and `tests/fixtures/no_dupes/`.
 
 ## License
 
-Public domain.
+[COPL](LICENSE) (Communist Public License). Use freely; share alike.

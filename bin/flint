@@ -1,23 +1,38 @@
 #!/usr/bin/env bash
-# flint launcher — restore the shell TTY after GForth exits.
+# flint launcher — Forth source linter.
+#
+# Conventions (shared with bin/fmix and any future bin/fcov):
+#   - $<TOOL>_HOME  ─ where the tool's source tree lives. Defaults to
+#                     $HOME/<tool>; override per-shell if you keep tools
+#                     elsewhere.
+#   - $<TOOL>_CMD   ─ subcommand (lint, version, help).
+#   - $<TOOL>_ARG   ─ single positional argument string, if any.
+#   - reset_tty     ─ only fires when stdout actually is a tty.
+#
+# Recommended ~/.bashrc snippet (one line per tool):
+#
+#   export PATH="$HOME/fmix/bin:$HOME/flint/bin:$HOME/fcov/bin:$PATH"
+#
 : "${FLINT_HOME:=$HOME/flint}"
 GFORTH="${GFORTH:-gforth}"
 
 reset_tty() {
+    # Only touch a tty if we actually have one — otherwise `\033[?2004l`
+    # lands in the captured output as the visible string `[?2004l`.
     local tty_path
     tty_path=$(tty 2>/dev/null || true)
+    case "$tty_path" in
+        ""|"not a tty") return ;;
+    esac
+    [ -r "$tty_path" ] && [ -w "$tty_path" ] || return
 
-    if [ -n "$tty_path" ] && [ "$tty_path" != "not a tty" ] && [ -r "$tty_path" ] && [ -w "$tty_path" ]; then
-        stty sane < "$tty_path" 2>/dev/null || true
-        printf '\033[?2004l' > "$tty_path" 2>/dev/null || true
-        local _ch
-        while IFS= read -r -s -t 0.02 -n 1 _ch < "$tty_path"; do
-            :
-        done
-    else
-        stty sane 2>/dev/null || true
-        printf '\033[?2004l' 2>/dev/null || true
-    fi
+    stty sane < "$tty_path" 2>/dev/null || true
+    printf '\033[?2004l' > "$tty_path" 2>/dev/null || true
+
+    local _ch
+    while IFS= read -r -s -t 0.02 -n 1 _ch < "$tty_path"; do
+        :
+    done
 }
 
 reset_tty

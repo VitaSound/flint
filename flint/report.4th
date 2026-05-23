@@ -1,12 +1,8 @@
-\ flint/report.4th — pretty-print collected duplicate warnings.
+\ flint/report.4th — group records by name, print one WARN per real
+\ duplicate (>= 2 distinct file mentions for the same name).
 \
-\ We don't want O(N²) lines of "name defined in X and Y, name defined in
-\ X and Z, name defined in Y and Z" — group by name and print each name
-\ once with the full list of files.
-\
-\ Implementation: instead of using flint.find-duplicates' pairwise hook,
-\ walk the records list ourselves, mark each record as «reported», and for
-\ every still-unreported record gather all matching records into one block.
+\ fenum's ulist-each only carries an xt — no closures — so we pass the
+\ «current record» between callbacks via a module-local variable.
 
 require flint/util.4th
 require flint/collect.4th
@@ -14,58 +10,62 @@ require flint/collect.4th
 variable flint.warn-count
 0 flint.warn-count !
 
-\ Marker: a 6th cell on each record indicating "reported".  We can't extend
-\ the struct after the fact; instead, allocate a parallel marker buffer.
-\ For simplicity we use an in-place trick: walk records once collecting
-\ unique names into a small array, and for each, list the files.
-\
-\ For now: a brute-force two-loop approach — O(N²) which is fine at <1000
-\ definitions per project.
+\ --- Private state used to relay context across ulist-each callbacks ----
 
-\ Has any earlier record (in list order) the same name? If yes, we already
-\ reported it as part of the earlier group, so skip.
-: flint.earlier-with-name? { rec -- f }
-    flint.records-head @ { cur }
-    begin cur rec <> while
-        cur flint.rec-name rec flint.rec-name flint.ci-compare 0= IF
-            true EXIT
-        THEN
-        cur flint.rec-next to cur
-    repeat
-    false ;
+variable flint.cur-rec        \ record whose group we're currently building
+variable flint.cur-count      \ running count of matches for cur-rec
+variable flint.seen-earlier?  \ was cur-rec's name already seen before it?
+variable flint.passed-cur?    \ have we walked past cur-rec in this scan?
 
-\ Count records that share rec's name (always >= 1, includes rec itself).
-: flint.count-with-name { rec -- n }
-    0 flint.records-head @ { cur }
-    begin cur while
-        cur flint.rec-name rec flint.rec-name flint.ci-compare 0= IF 1+ THEN
-        cur flint.rec-next to cur
-    repeat ;
+\ --- Predicates plugged into ulist-each ---------------------------------
 
-\ Print the full group for rec (rec's name + every file that defines it).
-: flint.print-group-for { rec -- }
-    cr s" [WARN] duplicate word `" type
-    rec flint.rec-name type
-    s" ` defined in:" type cr
-    flint.records-head @ { cur }
-    begin cur while
-        cur flint.rec-name rec flint.rec-name flint.ci-compare 0= IF
-            s"     " type cur flint.rec-file type cr
-        THEN
-        cur flint.rec-next to cur
-    repeat ;
+: flint.tick-if-name-matches ( rec -- )
+    flint.rec-name@
+    flint.cur-rec @ flint.rec-name@
+    flint.ci-compare 0= IF 1 flint.cur-count +! THEN ;
 
-\ Public: walk records, print one warning per *true* duplicate group
-\ (size >= 2).  Skip singletons and don't reprint groups already covered
-\ via an earlier record.
+: flint.print-if-name-matches ( rec -- )
+    dup flint.rec-name@
+    flint.cur-rec @ flint.rec-name@
+    flint.ci-compare 0= IF
+        s"     " type flint.rec-file@ type cr
+    ELSE
+        drop
+    THEN ;
+
+\ ulist-each has no early-exit, so we walk the *whole* list and use
+\ flint.passed-cur? to logically «stop» once we've gone past cur-rec.
+\ Only records strictly earlier than cur-rec are checked for a name match.
+: flint.flag-earlier-match ( rec -- )
+    flint.passed-cur? @ IF drop EXIT THEN
+    dup flint.cur-rec @ = IF
+        -1 flint.passed-cur? !
+        drop EXIT
+    THEN
+    flint.seen-earlier? @ IF drop EXIT THEN
+    flint.rec-name@
+    flint.cur-rec @ flint.rec-name@
+    flint.ci-compare 0= IF -1 flint.seen-earlier? ! THEN ;
+
+\ --- Driver -------------------------------------------------------------
+
+: flint.report-one-group ( rec -- )
+    flint.cur-rec !
+    0 flint.seen-earlier? !
+    0 flint.passed-cur? !
+    ['] flint.flag-earlier-match flint.records-each
+    flint.seen-earlier? @ IF EXIT THEN
+
+    0 flint.cur-count !
+    ['] flint.tick-if-name-matches flint.records-each
+    flint.cur-count @ 1 > IF
+        cr s" [WARN] duplicate word `" type
+        flint.cur-rec @ flint.rec-name@ type
+        s" ` defined in:" type cr
+        ['] flint.print-if-name-matches flint.records-each
+        1 flint.warn-count +!
+    THEN ;
+
 : flint.report-duplicates
-    flint.records-head @ { rec }
-    begin rec while
-        rec flint.earlier-with-name? 0= IF
-            rec flint.count-with-name 1 > IF
-                rec flint.print-group-for
-                1 flint.warn-count +!
-            THEN
-        THEN
-        rec flint.rec-next to rec
-    repeat ;
+    0 flint.warn-count !
+    ['] flint.report-one-group flint.records-each ;

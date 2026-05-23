@@ -5,6 +5,27 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.1.1] - 2026-05-24
+
+### Changed
+- Records storage refactored from a hand-rolled linked list to
+  [fenum](https://github.com/VitaSound/fenum)'s `ulist` (begin-structure
+  backend). Tighter ecosystem coupling, less boilerplate.
+- `bin/flint`: only manipulates the terminal when stdout *is* a tty.
+  Previously, when output was captured (`out=$(flint …)`) the bracketed-
+  paste reset escape leaked into the captured string as literal text
+  `[?2004l`. Same fix landed in `bin/fmix` (fmix 0.6.x sidebar).
+- `bin/flint` header documents the shared launcher conventions
+  (`$<TOOL>_HOME`, `$<TOOL>_CMD`, `$<TOOL>_ARG`) and the recommended
+  `~/.bashrc` snippet.
+- `package.4th`: added `tags`, fixed `license` to match the project's
+  actual COPL `LICENSE` file, added explicit dependency on
+  `fenum 0.1.1`.
+
+### Added
+- `README.ru.md` — полная русская версия документации.
+- README links into the VitaSound tooling family (fmix / ttester / fenum).
+
 ## [0.1.0] - 2026-05-24
 
 Initial release: **duplicate-definition linter for Forth source trees**.

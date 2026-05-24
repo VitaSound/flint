@@ -38,12 +38,16 @@ cd ~ && git clone git@github.com:VitaSound/flint.git
 cd flint && fmix packages.get
 ```
 
-Add to your `~/.bashrc` (or `~/.zshrc`):
+Add to your `~/.bashrc` (or `~/.zshrc`) — one line per tool, so each
+tool stays independent of the others (install/remove without touching
+the rest):
 
 ```bash
-# VitaSound Forth tooling
-export PATH="$HOME/fmix/bin:$HOME/flint/bin:$PATH"
+export PATH="$HOME/flint/bin:$PATH"
 ```
+
+(if you also use the sibling tools, add their own lines separately —
+e.g. `export PATH="$HOME/fmix/bin:$PATH"`, `export PATH="$HOME/fcov/bin:$PATH"`)
 
 Then `source ~/.bashrc` and verify:
 
@@ -51,8 +55,9 @@ Then `source ~/.bashrc` and verify:
 flint version
 ```
 
-flint requires Gforth ≥ 0.7.9 and shells out to `find` for file
-discovery; both ship on every Linux/macOS box you're likely to use.
+flint requires Gforth ≥ 0.7.9 — no other OS dependencies. Directory
+walking is done with Gforth's own `open-dir`/`read-dir`, so flint is
+portable to any environment that ships a reasonably complete ANS Forth.
 
 If you keep flint somewhere other than `$HOME/flint`, set
 `$FLINT_HOME` before invoking `flint` (the launcher honours it).
@@ -114,8 +119,51 @@ Add more in `flint/scan.4th : flint.defining?`.
 | `flint/util.4th` | string + case helpers |
 | `flint/scan.4th` | per-file token scanner with `defer flint.on-defined-word` hook |
 | `flint/collect.4th` | records storage on top of [fenum](https://github.com/VitaSound/fenum)'s `ulist` (one struct per `(file, word)` pair) |
-| `flint/walk.4th` | `find -type f -name '*.4th'` → list of paths |
+| `flint/walk.4th` | recursive directory walk using gforth's native `open-dir` / `read-dir` / `close-dir` (no shell-out to `find`) |
 | `flint/report.4th` | group records by name, print one WARN per real duplicate |
+| `flint/version-check.4th` | read `key-value flint <req>` from `./package.4th` and warn (don't fail) if the installed flint doesn't match. Parsing / matching delegated to [fsemver](https://github.com/VitaSound/fsemver) (shared with fmix). |
+
+## Version pinning (`key-value flint ~> X.Y`)
+
+A project's `package.4th` can declare a minimum flint version using the
+same Elixir/Hex grammar fmix uses:
+
+```forth
+forth-package
+    key-value name myproj
+    key-value version 0.1.0
+    key-value main myproj.4th
+    key-value flint ~> 0.2
+end-forth-package
+```
+
+| Form | Means |
+|------|-------|
+| `key-value flint ~> 0.2` | `>= 0.2.0` and `< 1.0.0` (MAJOR pinned) |
+| `key-value flint ~> 0.2.3` | `>= 0.2.3` and `< 0.3.0` (MAJOR+MINOR pinned) |
+| `key-value flint >= 0.2.0` | minimum, no upper bound |
+| `key-value flint == 0.2.0` | exact match |
+| `key-value flint >  0.2.0` | strictly greater |
+| `key-value flint <  1.0.0` | strictly less |
+| `key-value flint <= 0.2.5` | less-or-equal |
+| `key-value flint 0.2.0`    | bare = `>= 0.2.0` |
+
+Parsing / matching is delegated to the standalone
+[fsemver](https://github.com/VitaSound/fsemver) package — the very
+same engine fmix uses, so the operator grammar can't drift between
+tools.
+
+If your installed flint doesn't satisfy the requirement, flint prints a
+`[WARN]` line and **keeps running** — flint is a linter, not a gate. A
+future major bump may make this strict, but for now you'll see e.g.:
+
+```
+[WARN] This project requires flint ~> 0.3, but you have 0.2.0
+       Continuing anyway — flint won't block your lint.
+```
+
+The legacy form `key-list dependencies flint <ver>` is detected and
+surfaced as a WARN with the same migration target.
 
 ## Tests
 

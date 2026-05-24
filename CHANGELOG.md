@@ -5,9 +5,78 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.1] - 2026-05-24
+
+### Changed
+- **Version-requirement engine extracted to fsemver.** The parser,
+  matcher and operator constants previously living inline in
+  `flint/version-check.4th` are now provided by the standalone
+  [fsemver 0.1.0](https://github.com/VitaSound/fsemver) package, shared
+  with fmix 0.7.1 (and any future fcov / similar tooling). No more
+  cut-and-paste drift between linter and build tool.
+- `flint/version-check.4th` shrinks from ~193 lines to ~115 (only the
+  project-side mini-parser, the captured req string, the warning text,
+  and `flint.check-required-version` itself). Internal words like
+  `flint.parse-req`, `flint.req-matches?`, `flint.parse-version-parts`
+  are gone — call `fsemver.parse-req` / `fsemver.req-matches?` /
+  `fsemver.parse-version-parts` instead if any out-of-tree code was
+  relying on them.
+- Operator coverage widens transparently: `>=`, `==`, `>`, `<`, `<=`
+  are accepted in `key-value flint <req>` in addition to `~>` and bare
+  `X.Y.Z` (you get them for free via fsemver).
+
+### Added
+- `key-list dependencies fsemver git https://github.com/VitaSound/fsemver tag 0.1.0`
+  in `package.4th`. Run `fmix packages.get` after `git pull` to fetch
+  it into `forth-packages/fsemver/0.1.0/`.
+
+### Notes
+- No behaviour change for project authors. `key-value flint ~> 0.2`
+  (and friends) keep working exactly as before. Legacy
+  `key-list dependencies flint …` still emits the same WARN with
+  migration hint.
+- `tests/flint_version_check_test.4th` is now a thin smoke-test (8
+  assertions) that verifies fsemver is reachable from flint's load
+  chain. The full 71-case operator truth-table lives upstream in
+  `forth-packages/fsemver/0.1.0/tests/fsemver_test.4th`.
+
+## [0.2.0] - 2026-05-24
+
+### Added
+- `flint/version-check.4th` — read the project's `./package.4th` and
+  warn (don't fail) if the installed flint doesn't satisfy
+  `key-value flint <req>`. Same Elixir/Hex requirement grammar as
+  fmix's `key-value fmix <req>`:
+  ```
+  key-value flint ~> 0.2          \ >=0.2.0  and  <1.0.0
+  key-value flint ~> 0.2.3        \ >=0.2.3  and  <0.3.0
+  key-value flint 0.2.0           \ bare = >=0.2.0
+  ```
+  Unlike fmix's check, mismatch is **warn-only** — flint is a linter,
+  not a build gate, so the lint always runs.
+- Legacy pre-0.2 `key-list dependencies flint <ver>` form is detected
+  and surfaced as a WARN with a one-line migration hint.
+- `tests/flint_version_check_test.4th` — 22 unit assertions for
+  parser & matcher (mirrors fmix's coverage exactly).
+- `tests/fixtures/{wants_future_flint,legacy_flint_dep,invalid_flint_req}/`
+  and matching cases in `tests/flint_integration_test.sh` (now 11 OK
+  lines; was 7) — confirm warn-only behaviour and that lint still
+  finishes its work.
+
+### Changed
+- `package.4th` bumped to 0.2.0; runtime requirement on fmix is now
+  expressed Elixir-style as `key-value fmix ~> 0.7` instead of the
+  legacy `key-list dependencies fmix 0.6.0`.
+
 ## [0.1.1] - 2026-05-24
 
 ### Changed
+- `flint/walk.4th` rewritten in pure Forth: dropped the `find` shell-out
+  and the `/tmp/flint-files.tmp` round-trip in favour of gforth's own
+  `open-dir` / `read-dir` / `close-dir`. flint no longer depends on any
+  POSIX utility — only on a host Forth that exposes directory primitives.
+  Recursion uses `defer` + `is` so we get a clean local-stack frame per
+  level. Skips `.`, `..`, hidden names, and `build/` subtrees.
 - Records storage refactored from a hand-rolled linked list to
   [fenum](https://github.com/VitaSound/fenum)'s `ulist` (begin-structure
   backend). Tighter ecosystem coupling, less boilerplate.

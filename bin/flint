@@ -9,9 +9,12 @@
 #   - $<TOOL>_ARG   ─ single positional argument string, if any.
 #   - reset_tty     ─ only fires when stdout actually is a tty.
 #
-# Recommended ~/.bashrc snippet (one line per tool):
+# Recommended ~/.bashrc snippet — one separate line per tool so each one
+# can be installed / removed independently of the others:
 #
-#   export PATH="$HOME/fmix/bin:$HOME/flint/bin:$HOME/fcov/bin:$PATH"
+#   export PATH="$HOME/flint/bin:$PATH"
+#   # export PATH="$HOME/fmix/bin:$PATH"   # if/when you also use fmix
+#   # export PATH="$HOME/fcov/bin:$PATH"   # if/when you also use fcov
 #
 : "${FLINT_HOME:=$HOME/flint}"
 GFORTH="${GFORTH:-gforth}"

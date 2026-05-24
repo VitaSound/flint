@@ -41,12 +41,16 @@ cd ~ && git clone git@github.com:VitaSound/flint.git
 cd flint && fmix packages.get
 ```
 
-В `~/.bashrc` (или `~/.zshrc`):
+В `~/.bashrc` (или `~/.zshrc`) — по одной строке на каждый
+инструмент, чтобы они оставались независимы (установить/удалить любой
+из них можно отдельно от остальных):
 
 ```bash
-# Инструменты VitaSound для Forth
-export PATH="$HOME/fmix/bin:$HOME/flint/bin:$PATH"
+export PATH="$HOME/flint/bin:$PATH"
 ```
+
+(если рядом стоят соседние инструменты, добавляйте им отдельные строки
+— например `export PATH="$HOME/fmix/bin:$PATH"`, `export PATH="$HOME/fcov/bin:$PATH"`)
 
 Перечитать конфиг и проверить:
 
@@ -55,9 +59,10 @@ source ~/.bashrc
 flint version
 ```
 
-flint требует Gforth ≥ 0.7.9 и пользуется системной утилитой `find` для
-обхода файлов — и то, и другое есть «из коробки» на любом
-Linux/macOS.
+flint требует только Gforth ≥ 0.7.9 — никаких других зависимостей от
+ОС. Обход каталогов сделан на родных словах Gforth (`open-dir`/
+`read-dir`), поэтому flint переносится на любую систему с приличным
+ANS Forth.
 
 Если flint лежит не в `$HOME/flint`, экспортируйте `$FLINT_HOME`
 перед вызовом.
@@ -119,8 +124,52 @@ code synonym
 | `flint/util.4th` | строковые и регистровые хелперы |
 | `flint/scan.4th` | пофайловый сканер токенов с хуком `defer flint.on-defined-word` |
 | `flint/collect.4th` | список записей поверх [fenum](https://github.com/VitaSound/fenum)'овского `ulist` (одна структура на пару `(file, word)`) |
-| `flint/walk.4th` | `find -type f -name '*.4th'` → список путей |
+| `flint/walk.4th` | рекурсивный обход на родных словах Gforth (`open-dir` / `read-dir` / `close-dir`), без shell-out на `find` |
 | `flint/report.4th` | группирует записи по имени, печатает один WARN на реальный дубликат |
+| `flint/version-check.4th` | читает `key-value flint <req>` из `./package.4th` и печатает WARN (не блокирует), если установленный flint не подходит. Парсинг / матчинг делегированы [fsemver](https://github.com/VitaSound/fsemver) (общий движок с fmix). |
+
+## Привязка версии flint (`key-value flint ~> X.Y`)
+
+В `package.4th` проекта можно объявить минимально допустимую версию
+flint в том же синтаксисе, что и для fmix:
+
+```forth
+forth-package
+    key-value name myproj
+    key-value version 0.1.0
+    key-value main myproj.4th
+    key-value flint ~> 0.2
+end-forth-package
+```
+
+| Запись | Что означает |
+|--------|--------------|
+| `key-value flint ~> 0.2` | `>= 0.2.0` и `< 1.0.0` (MAJOR зафиксирован) |
+| `key-value flint ~> 0.2.3` | `>= 0.2.3` и `< 0.3.0` (MAJOR+MINOR зафиксированы) |
+| `key-value flint >= 0.2.0` | минимум, без верхней границы |
+| `key-value flint == 0.2.0` | ровно эта версия |
+| `key-value flint >  0.2.0` | строго больше |
+| `key-value flint <  1.0.0` | строго меньше |
+| `key-value flint <= 0.2.5` | меньше-или-равно |
+| `key-value flint 0.2.0`    | голая версия = `>= 0.2.0` |
+
+Парсинг / матчинг делегированы отдельной библиотеке
+[fsemver](https://github.com/VitaSound/fsemver) — это тот же движок,
+что и в fmix, поэтому грамматика операторов гарантированно не
+разойдётся между инструментами.
+
+Если установленный flint не подходит, печатается `[WARN]`, но линтер
+**всё равно отрабатывает** — flint это подсказка, а не «ворота»
+сборки. В будущей мажорной версии может стать строгой проверкой; пока
+просто увидите что-то вроде:
+
+```
+[WARN] This project requires flint ~> 0.3, but you have 0.2.0
+       Continuing anyway — flint won't block your lint.
+```
+
+Старый формат `key-list dependencies flint <ver>` тоже распознаётся и
+выводится в виде WARN с подсказкой по миграции.
 
 ## Тесты
 
@@ -129,6 +178,42 @@ bash tests/flint_integration_test.sh
 ```
 
 Фикстуры лежат в `tests/fixtures/with_dupes/` и `tests/fixtures/no_dupes/`.
+
+## Публикация на theforth.net
+
+[theforth.net](https://theforth.net/) — официальный реестр
+Forth-пакетов. Туда полезно выложить flint, чтобы соседние проекты
+могли прописать его как зависимость в своих `package.4th`.
+
+Краткая инструкция (по [guidelines](https://theforth.net/guidelines)):
+
+1. Создай аккаунт: <https://theforth.net/profile>.
+
+2. Проверь `package.4th`. У flint он уже под guidelines — обязательные
+   поля (`name`, `version` `MAJOR.MINOR.PATCH`, `license`, `main`)
+   на месте, плюс `description`, `tags`, `dependencies`.
+
+3. Собери архив. **Корневая папка в архиве должна точно совпадать с
+   полем `name`** (`flint`), и `package.4th` лежит в её корне:
+
+   ```bash
+   cd ~                                            # на уровень выше flint/
+   tar czf flint-0.1.1.tar.gz \
+       --exclude='flint/.git' \
+       --exclude='flint/forth-packages' \
+       --exclude='flint/build' \
+       flint
+   ```
+
+4. Залогинься на theforth.net, перейди в
+   [Profile](https://theforth.net/profile) и загрузи архив через форму
+   upload.
+
+5. После публикации НЕ меняй `version` для уже выложенного слота —
+   повышай его по SemVer:
+   - **PATCH** — обратно-совместимый багфикс,
+   - **MINOR** — обратно-совместимое добавление функциональности,
+   - **MAJOR** — несовместимое изменение API.
 
 ## Лицензия
 

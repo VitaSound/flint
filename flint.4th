@@ -17,6 +17,8 @@ require flint/scan.4th
 require flint/collect.4th
 require flint/walk.4th
 require flint/report.4th
+\ flint/version-check.4th uses `flint-ver-data` — it's brought into scope
+\ a few lines below, then we include version-check after that.
 
 \ --- Self-version (read from package.4th) ---------------------------------
 
@@ -54,6 +56,10 @@ MARKER flint.discard-ver-parser
 flint.read-self-version
 
 flint.discard-ver-parser
+
+\ Version-check parser uses its own throwaway scope; load *after* the
+\ self-version parser is gone to avoid colliding key-value/key-list defs.
+require flint/version-check.4th
 
 \ --- Argument parsing -----------------------------------------------------
 
@@ -96,6 +102,7 @@ s" " flint.arg 2!
     cr s" ** (flint) v" type flint-ver-data 2@ type cr cr ;
 
 : flint.lint
+    flint.check-required-version
     flint.records-clear
     flint.arg 2@ flint.walk-collect
     ['] flint.scan-file flint.walk-foreach

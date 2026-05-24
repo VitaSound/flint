@@ -4,11 +4,13 @@
 \ optional metadata (description, tags), dependencies last.
 forth-package
     key-value name flint
-    key-value version 0.2.1
+    key-value version 0.2.2
     key-value description Forth source linter: warns on duplicate word definitions across files and dependencies
     key-value license COPL
     key-value main flint.4th
     key-value fmix ~> 0.7
+    key-value fcov ~> 0.3
+    key-list fcov-exclude tests/fixtures
     key-list tags linter
     key-list tags duplicate-definitions
     key-list tags gforth

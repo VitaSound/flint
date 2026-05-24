@@ -5,6 +5,20 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.2] - 2026-05-24
+
+### Added
+- `package.4th`: declare `key-value fcov ~> 0.3` (ecosystem-wide
+  coverage participation) and `key-list fcov-exclude tests/fixtures`
+  so fcov reports flint code, not its fixture projects. Current
+  baseline on `fcov run fmix test`: 13/59 (22 %) — most uncovered
+  code (walk / scan / collect / report) is exercised by
+  `flint_integration_test.sh`, a black-box harness invisible to
+  `fcov`. Lifting this number is one of the headline TODOs in
+  `fhdlgen/doc/ecosystem.md` § Recommendations.
+- `.gitignore`: ignore `.fcov/` runtime artefacts; also reformat to
+  multi-line style with `build/`, `*.swp`, `.DS_Store`.
+
 ## [0.2.1] - 2026-05-24
 
 ### Changed

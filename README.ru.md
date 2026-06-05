@@ -16,7 +16,7 @@ flint **нарочно «тупой» в первой версии**:
 - Условную компиляцию не понимает: `[IFDEF] / [IFUNDEF]` игнорируются,
   каждое `: foo …` в любой ветке учитывается.
 - Не дедуплицирует версии зависимостей. Если в `forth-packages/` лежат
-  и `ttester/1.1.0/`, и `ttester/1.2.0/` — все слова ttester прозвенят
+  и `ttester/1.2.0/`, и `ttester/1.2.1/` — все слова ttester прозвенят
   как дубликаты. Именно это и нужный сигнал: «у тебя в проекте лишняя
   копия зависимости».
 - Никакой семантики Forth — мы не выполняем код, это просто разбор
@@ -41,31 +41,22 @@ cd ~ && git clone git@github.com:VitaSound/flint.git
 cd flint && fmix packages.get
 ```
 
-В `~/.bashrc` (или `~/.zshrc`) — по одной строке на каждый
-инструмент, чтобы они оставались независимы (установить/удалить любой
-из них можно отдельно от остальных):
+## Настройка shell
+
+В `~/.bashrc` (или `~/.zshrc`) — **две строки только для этого инструмента** (конвенция VitaSound: один инструмент — одна пара строк PATH):
 
 ```bash
-export PATH="$HOME/flint/bin:$PATH"
+export FLINT_HOME="<install-dir>/flint"
+export PATH="$FLINT_HOME/bin:$PATH"
 ```
 
-(если рядом стоят соседние инструменты, добавляйте им отдельные строки
-— например `export PATH="$HOME/fmix/bin:$PATH"`, `export PATH="$HOME/fcov/bin:$PATH"`)
+`<install-dir>` — родитель клонов (`$HOME` при feco в `~/feco`, или например `/opt/vitasound`). Массовая установка: [VitaSound/feco](https://github.com/VitaSound/feco) — `./scripts/clone-ecosystem.sh`. Канон: [feco shell setup](https://github.com/VitaSound/feco/blob/main/docs/shell-setup.ru.md).
 
-Перечитать конфиг и проверить:
+Затем `source ~/.bashrc` и `flint version`.
 
-```bash
-source ~/.bashrc
-flint version
-```
+Соседние CLI (fmix, fcov, fmcp, fhdlgen) — свои пары строк: [feco shell setup](https://github.com/VitaSound/feco/blob/main/docs/shell-setup.ru.md).
 
-flint требует только Gforth ≥ 0.7.9 — никаких других зависимостей от
-ОС. Обход каталогов сделан на родных словах Gforth (`open-dir`/
-`read-dir`), поэтому flint переносится на любую систему с приличным
-ANS Forth.
-
-Если flint лежит не в `$HOME/flint`, экспортируйте `$FLINT_HOME`
-перед вызовом.
+flint требует только Gforth ≥ 0.7.9.
 
 ## Использование
 
@@ -86,8 +77,8 @@ flint help          # справка
     ./projects/old/legacy.4th
 
 [WARN] duplicate word `ERROR` defined in:
-    ./forth-packages/ttester/1.1.0/ttester.4th
     ./forth-packages/ttester/1.2.0/ttester.4th
+    ./forth-packages/ttester/1.2.1/ttester.4th
 
 * flint: 2 duplicate group(s) reported.
 ```

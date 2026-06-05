@@ -14,8 +14,8 @@ flint is intentionally **dumb in the first pass**:
 
 - No conditional-compilation awareness (`[IFDEF]` / `[IFUNDEF]` are
   ignored — every `: foo …` inside any branch is counted).
-- No dependency-version dedup (if you have `forth-packages/ttester/1.1.0/`
-  *and* `forth-packages/ttester/1.2.0/` in your tree, you'll see warnings
+- No dependency-version dedup (if you have `forth-packages/ttester/1.2.0/`
+  *and* `forth-packages/ttester/1.2.1/` in your tree, you'll see warnings
   for every word ttester defines — that's the intended signal).
 - No deep Forth semantics (we don't run any code; this is pure text
   tokenising with comment/string skipping).
@@ -38,29 +38,22 @@ cd ~ && git clone git@github.com:VitaSound/flint.git
 cd flint && fmix packages.get
 ```
 
-Add to your `~/.bashrc` (or `~/.zshrc`) — one line per tool, so each
-tool stays independent of the others (install/remove without touching
-the rest):
+## Shell setup
+
+Add to `~/.bashrc` (or `~/.zshrc`) — **two lines for this tool only** (VitaSound convention: one tool per PATH line; do not merge with siblings):
 
 ```bash
-export PATH="$HOME/flint/bin:$PATH"
+export FLINT_HOME="<install-dir>/flint"
+export PATH="$FLINT_HOME/bin:$PATH"
 ```
 
-(if you also use the sibling tools, add their own lines separately —
-e.g. `export PATH="$HOME/fmix/bin:$PATH"`, `export PATH="$HOME/fcov/bin:$PATH"`)
+`<install-dir>` is the parent of your clones (`$HOME` if you cloned beside `~/feco`, or e.g. `/opt/vitasound` for an isolated workspace). Bulk install: [VitaSound/feco](https://github.com/VitaSound/feco) — `./scripts/clone-ecosystem.sh`. Canonical rules: [feco shell setup](https://github.com/VitaSound/feco/blob/main/docs/shell-setup.md).
 
-Then `source ~/.bashrc` and verify:
+Then `source ~/.bashrc` and run `flint version`.
 
-```bash
-flint version
-```
+Sibling CLI tools (fmix, fcov, fmcp, fhdlgen) each need their own two-line block — see [feco shell setup](https://github.com/VitaSound/feco/blob/main/docs/shell-setup.md).
 
-flint requires Gforth ≥ 0.7.9 — no other OS dependencies. Directory
-walking is done with Gforth's own `open-dir`/`read-dir`, so flint is
-portable to any environment that ships a reasonably complete ANS Forth.
-
-If you keep flint somewhere other than `$HOME/flint`, set
-`$FLINT_HOME` before invoking `flint` (the launcher honours it).
+flint requires Gforth ≥ 0.7.9 — no other OS dependencies.
 
 ## Usage
 
@@ -81,8 +74,8 @@ Typical output:
     ./projects/old/legacy.4th
 
 [WARN] duplicate word `ERROR` defined in:
-    ./forth-packages/ttester/1.1.0/ttester.4th
     ./forth-packages/ttester/1.2.0/ttester.4th
+    ./forth-packages/ttester/1.2.1/ttester.4th
 
 * flint: 2 duplicate group(s) reported.
 ```

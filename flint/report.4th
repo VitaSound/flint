@@ -7,9 +7,6 @@
 require flint/util.4th
 require flint/collect.4th
 
-variable flint.warn-count
-0 flint.warn-count !
-
 \ --- Private state used to relay context across ulist-each callbacks ----
 
 variable flint.cur-rec        \ record whose group we're currently building
@@ -67,5 +64,4 @@ variable flint.passed-cur?    \ have we walked past cur-rec in this scan?
     THEN ;
 
 : flint.report-duplicates
-    0 flint.warn-count !
     ['] flint.report-one-group flint.records-each ;

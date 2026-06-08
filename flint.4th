@@ -68,7 +68,20 @@ require flint/version-check.4th
 s" " flint.cmd 2!
 s" " flint.arg 2!
 
+: flint.read-flags
+    0 flint.strict? !
+    0 flint.project-only? !
+    s" FLINT_STRICT" getenv 2dup nip IF
+        2dup s" 1" compare 0= IF -1 flint.strict? ! THEN
+        2drop
+    ELSE 2drop THEN
+    s" FLINT_PROJECT_ONLY" getenv 2dup nip IF
+        2dup s" 1" compare 0= IF -1 flint.project-only? ! THEN
+        2drop
+    ELSE 2drop THEN ;
+
 : flint.read-args
+    flint.read-flags
     s" FLINT_CMD" getenv 2dup nip IF
         flint.str-dup flint.cmd 2!
     ELSE
@@ -87,11 +100,15 @@ s" " flint.arg 2!
     s"  — duplicate-definition linter for Forth source trees" type cr
     s" Usage: flint <command> [args]" type cr
     s" Commands:" type cr
-    s"    lint [path]    - Lint .4th files under path (default: .)" type cr
+    s"    lint [path] [--strict] [--project-only]" type cr
+    s"                   - Lint .4th files under path (default: .)" type cr
     s"    version        - Show version" type cr
     s"    help           - Show this help" type cr cr
+    s" Flags (lint):" type cr
+    s"    --strict         - exit 1 when any [WARN] is reported" type cr
+    s"    --project-only   - skip forth-packages/ (project sources only)" type cr cr
     s" Notes:" type cr
-    s"    - Warnings go to stdout; exit code is always 0." type cr
+    s"    - Default: warnings to stdout, exit code 0." type cr
     s"    - build/ subdirectories are skipped." type cr
     s"    - First-pass implementation: ignores conditional compilation," type cr
     s"      [IFDEF]/[IFUNDEF] guards, and per-version dedup of dependencies." type cr
@@ -102,6 +119,7 @@ s" " flint.arg 2!
     cr s" ** (flint) v" type flint-ver-data 2@ type cr cr ;
 
 : flint.lint
+    0 flint.warn-count !
     flint.check-required-version
     flint.records-clear
     flint.arg 2@ flint.walk-collect
@@ -109,7 +127,11 @@ s" " flint.arg 2!
     cr s" * flint: scanned " type
     flint.records-count @ . s" word definitions" type cr
     flint.report-duplicates
-    cr s" * flint: " type flint.warn-count @ . s" duplicate group(s) reported." type cr ;
+    cr s" * flint: " type flint.warn-count @ . s" duplicate group(s) reported." type cr
+    flint.strict? @ flint.warn-count @ 0> and IF
+        cr s" [ERROR] flint --strict: warnings reported" type cr
+        1 (bye)
+    THEN ;
 
 : flint-dispatch
     flint.read-args

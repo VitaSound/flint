@@ -22,7 +22,8 @@
 \ Skipped entries:
 \   - empty names (defensive),
 \   - any name starting with '.'  (covers `.`, `..`, `.git`, hidden …),
-\   - directories named exactly `build` (project build output).
+\   - directories named exactly `build` (project build output),
+\   - directories named exactly `forth-packages` when FLINT_PROJECT_ONLY=1.
 
 require flint/util.4th
 
@@ -36,6 +37,9 @@ create flint.walk-name-buf flint.walk-name-max allot
     u 0= IF true EXIT THEN
     a c@ [char] . = IF true EXIT THEN
     a u s" build" compare 0= IF true EXIT THEN
+    flint.project-only? @ IF
+        a u s" forth-packages" compare 0= IF true EXIT THEN
+    THEN
     false ;
 
 \ Probe a path: try to open it as a directory. On success we leave the

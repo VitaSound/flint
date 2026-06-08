@@ -40,15 +40,53 @@ reset_tty() {
 
 reset_tty
 
+FLINT_STRICT=0
+FLINT_PROJECT_ONLY=0
+
 if [ $# -eq 0 ]; then
     FLINT_CMD=lint
     FLINT_ARG=.
 else
     FLINT_CMD=$1
     shift
-    FLINT_ARG=${1:-.}
+    if [ "$FLINT_CMD" = "lint" ]; then
+        FLINT_ARG=.
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --strict)        FLINT_STRICT=1; shift ;;
+                --project-only)  FLINT_PROJECT_ONLY=1; shift ;;
+                --)              shift; break ;;
+                --*)
+                    echo "[ERROR] Unknown lint flag: $1" >&2
+                    exit 1
+                    ;;
+                *)
+                    FLINT_ARG=$1
+                    shift
+                    while [ $# -gt 0 ]; do
+                        case "$1" in
+                            --strict)        FLINT_STRICT=1; shift ;;
+                            --project-only)  FLINT_PROJECT_ONLY=1; shift ;;
+                            --)              shift; break ;;
+                            --*)
+                                echo "[ERROR] Unknown lint flag: $1" >&2
+                                exit 1
+                                ;;
+                            *)
+                                echo "[ERROR] Unexpected argument after path: $1" >&2
+                                exit 1
+                                ;;
+                        esac
+                    done
+                    break
+                    ;;
+            esac
+        done
+    else
+        FLINT_ARG=${1:-.}
+    fi
 fi
-export FLINT_CMD FLINT_ARG FLINT_HOME
+export FLINT_CMD FLINT_ARG FLINT_HOME FLINT_STRICT FLINT_PROJECT_ONLY
 
 set +e
 # Add $FLINT_HOME to gforth's fpath (search path for `require`) so module

@@ -31,6 +31,7 @@ s" ." flint.arg 2!
 0 #ERRORS !
 
 : flint.test-lint ( path-a path-u -- warns )
+    0 flint.warn-count !
     flint.records-clear
     flint.arg 2!
     flint.check-required-version

@@ -1,5 +1,12 @@
 \ flint/util.4th — small string + memory helpers used across flint.
 
+variable flint.strict?
+variable flint.project-only?
+variable flint.warn-count
+0 flint.strict? !
+0 flint.project-only? !
+0 flint.warn-count !
+
 [IFUNDEF] flint.str-dup
 
 : flint.str-dup { a u -- a-new u }

@@ -54,6 +54,21 @@ if [ "$status" -ne 0 ]; then
 fi
 pass "flint exit code is 0 even with duplicates (warn, not error)"
 
+# --- Case 3b: --strict exits non-zero ------------------------------------
+( cd "$repo_root/tests/fixtures/with_dupes" && bash "$repo_root/bin/flint" lint . --strict >/dev/null 2>&1 )
+status=$?
+if [ "$status" -eq 0 ]; then
+    fail "flint --strict must exit non-zero with duplicates; got $status"
+fi
+pass "flint --strict exits non-zero with duplicates"
+
+( cd "$repo_root/tests/fixtures/no_dupes" && bash "$repo_root/bin/flint" lint . --strict >/dev/null 2>&1 )
+status=$?
+if [ "$status" -ne 0 ]; then
+    fail "flint --strict must exit 0 when clean; got $status"
+fi
+pass "flint --strict exits 0 when clean"
+
 # --- Case 4: flint version / help work -----------------------------------
 out=$(bash "$repo_root/bin/flint" version 2>&1)
 if ! grep -q "(flint)" <<<"$out"; then

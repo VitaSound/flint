@@ -88,24 +88,33 @@ flint.discard-vercheck-parser
 
 \ --- Public API (defined *after* MARKER expiration so they survive) ----
 
+: flint.warn-strict+ ( -- )
+    flint.strict? @ IF 1 flint.warn-count +! THEN ;
+
 : flint.warn-legacy
     cr s" [WARN] Project's package.4th uses pre-0.2 form:" type cr
     s"            key-list dependencies flint <version>" type cr
     s"        flint is a runtime/tooling requirement, not a library." type cr
     s"        Recommended migration (one-line edit):" type cr
-    s"            key-value flint ~> <X.Y>" type cr ;
+    s"            key-value flint ~> <X.Y>" type cr
+    flint.warn-strict+ ;
 
 : flint.warn-invalid-req
     cr s" [WARN] Invalid flint version requirement in package.4th:" type cr
     s"            key-value flint " type flint.required-req 2@ type cr
     s"        Expected one of: ~> X.Y, ~> X.Y.Z, >= X.Y.Z, == X.Y.Z," type cr
-    s"                         >  X.Y.Z, <  X.Y.Z, <= X.Y.Z, or bare X.Y.Z" type cr ;
+    s"                         >  X.Y.Z, <  X.Y.Z, <= X.Y.Z, or bare X.Y.Z" type cr
+    flint.warn-strict+ ;
 
 : flint.warn-too-old
     cr s" [WARN] This project requires flint " type
     flint.required-req 2@ type
     s" , but you have " type flint-ver-data 2@ type cr
-    s"        Continuing anyway — flint won't block your lint." type cr ;
+    flint.strict? @ IF
+        flint.warn-strict+
+    ELSE
+        s"        Continuing anyway — flint won't block your lint." type cr
+    THEN ;
 
 : flint.check-required-version
     flint.legacy-self-dep? @ IF flint.warn-legacy EXIT THEN

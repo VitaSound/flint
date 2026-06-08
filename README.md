@@ -1,6 +1,6 @@
 # flint
 [![License](https://img.shields.io/badge/License-COPL-red.svg)](https://raw.githubusercontent.com/VitaSound/flint/refs/heads/main/LICENSE)
-[![Ver](https://img.shields.io/badge/Ver-0.2.3-green.svg)](https://github.com/VitaSound/flint/releases/tag/0.2.3)
+[![Ver](https://img.shields.io/badge/Ver-0.3.0-green.svg)](https://github.com/VitaSound/flint/releases/tag/0.3.0)
 [![Cov](https://img.shields.io/badge/Cov-87%25-green.svg)](https://github.com/VitaSound/flint/actions/workflows/ci.yml)
 
 [Русская версия](README.ru.md)
@@ -23,8 +23,9 @@ flint is intentionally **dumb in the first pass**:
 - No deep Forth semantics (we don't run any code; this is pure text
   tokenising with comment/string skipping).
 
-Output is **warn-level only** — flint always exits with status 0. CI
-users who want a hard failure can `grep '\[WARN\]'` and react.
+By default output is **warn-level only** — flint exits with status 0. Use
+`flint lint . --strict` for a hard gate (exit 1 on any `[WARN]`). Use
+`--project-only` to skip `forth-packages/` (project sources only).
 
 Part of the [VitaSound Forth tooling
 family](https://github.com/VitaSound): [fmix](https://github.com/VitaSound/fmix)

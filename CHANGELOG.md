@@ -5,6 +5,16 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.0] - 2026-06-08
+
+### Added
+- `flint lint [path] [--strict] [--project-only]` — `--strict` exits 1 on any
+  `[WARN]` (duplicates and version-pin warnings); `--project-only` skips
+  `forth-packages/`.
+
+### Changed
+- Default lint remains warn-only (exit 0).
+
 ## [0.2.3] - 2026-06-08
 
 ### Added

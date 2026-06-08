@@ -5,6 +5,18 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.3] - 2026-06-08
+
+### Added
+- `tests/flint_integration_test.4th` — in-process walk/scan/collect/report
+  integration on fixtures plus version-check warn paths; raises fcov baseline
+  from ~22 % to ~87 %.
+- GitHub Actions CI (Gforth 0.7.9, fmix 0.7.2, `fmix test`).
+- License, Ver and Cov badges in `README.md` / `README.ru.md`.
+
+### Changed
+- Pin ttester 1.2.1 in `package.4th` and version-check tests.
+
 ## [0.2.2] - 2026-05-24
 
 ### Added

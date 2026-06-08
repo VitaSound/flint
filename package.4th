@@ -4,7 +4,7 @@
 \ optional metadata (description, tags), dependencies last.
 forth-package
     key-value name flint
-    key-value version 0.2.2
+    key-value version 0.2.3
     key-value description Forth source linter: warns on duplicate word definitions across files and dependencies
     key-value license COPL
     key-value main flint.4th
@@ -16,5 +16,5 @@ forth-package
     key-list tags gforth
     key-list dependencies fsemver git https://github.com/VitaSound/fsemver tag 0.1.0
     key-list dependencies fenum git https://github.com/VitaSound/fenum tag 0.1.1
-    key-list dependencies ttester git https://github.com/VitaSound/ttester tag 1.2.0
+    key-list dependencies ttester git https://github.com/VitaSound/ttester tag 1.2.1
 end-forth-package

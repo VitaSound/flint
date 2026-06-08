@@ -2,6 +2,10 @@
 
 [English version](README.md)
 
+[![License](https://img.shields.io/badge/License-COPL-red.svg)](https://raw.githubusercontent.com/VitaSound/flint/refs/heads/main/LICENSE)
+[![Ver](https://img.shields.io/badge/Ver-0.2.3-green.svg)](https://github.com/VitaSound/flint/releases/tag/0.2.3)
+[![Cov](https://img.shields.io/badge/Cov-87%25-green.svg)](https://github.com/VitaSound/flint/actions/workflows/ci.yml)
+
 Маленький линтер для Forth-исходников.
 
 Сейчас flint умеет одну вещь — **искать дублирующиеся определения слов**

@@ -19,8 +19,8 @@
     fpath also-path ;
 flint.test-setup-fpath
 
-s" forth-packages/ttester/1.2.0/ttester.4th" included
-s" forth-packages/ttester/1.2.0/ttester-ext.4th" included
+s" forth-packages/ttester/1.2.1/ttester.4th" included
+s" forth-packages/ttester/1.2.1/ttester-ext.4th" included
 
 require flint/util.4th
 

@@ -170,6 +170,11 @@ bash tests/flint_integration_test.sh
 
 Fixtures live under `tests/fixtures/with_dupes/` and `tests/fixtures/no_dupes/`.
 
+## VitaSound ecosystem
+
+- [feco](https://github.com/VitaSound/feco) — catalog of the Forth toolchain: versions, coverage, bulk clone and install
+- [MIT](https://github.com/VitaSound/MIT) — engineering methodology: task decomposition and hardware/software stack levels
+
 ## License
 
 [COPL](LICENSE) (Communist Public License). Use freely; share alike.

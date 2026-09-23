@@ -1,0 +1,21 @@
+schema: spec-driven
+
+context: |
+  Language: Russian
+  All artifacts must be written in Russian.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Проект: flint — линтер Forth (предупреждения о повторных определениях слов в .4th), часть экосистемы VitaSound feco.
+  Стек: Gforth, правила frules, package.4th. Вызывается из fmix check и MCP vitasound-forth (flint_lint).
+  Проверка: fmix test, интеграционные tests/*.sh с fixtures, flint, fcov run && fcov report.
+
+rules:
+  specs:
+    - Scenario формулировать через входной .4th (fixture) и ожидаемые предупреждения/код возврата
+  tasks:
+    - Каждое правило линтера сопровождать fixture в tests/fixtures/
+
+operations:
+  apply:
+    guidance:
+      - Перед завершением прогонять fmix check; обновлять CHANGELOG.md

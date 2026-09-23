@@ -174,6 +174,7 @@ Fixtures live under `tests/fixtures/with_dupes/` and `tests/fixtures/no_dupes/`.
 
 - [feco](https://github.com/VitaSound/feco) — catalog of the Forth toolchain: versions, coverage, bulk clone and install
 - [MIT](https://github.com/VitaSound/MIT) — engineering methodology: task decomposition and hardware/software stack levels
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — changes are planned in [`openspec/`](openspec/) (`/opsx-propose` in Cursor); context: [`openspec/config.yaml`](openspec/config.yaml)
 
 ## License
 

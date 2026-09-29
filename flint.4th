@@ -17,6 +17,7 @@ require flint/scan.4th
 require flint/collect.4th
 require flint/walk.4th
 require flint/report.4th
+require flint/exclude.4th
 \ flint/version-check.4th uses `flint-ver-data` — it's brought into scope
 \ a few lines below, then we include version-check after that.
 
@@ -110,6 +111,7 @@ s" " flint.arg 2!
     s" Notes:" type cr
     s"    - Default: warnings to stdout, exit code 0." type cr
     s"    - build/ subdirectories are skipped." type cr
+    s"    - key-list flint-exclude <path> in package.4th skips matching files." type cr
     s"    - First-pass implementation: ignores conditional compilation," type cr
     s"      [IFDEF]/[IFUNDEF] guards, and per-version dedup of dependencies." type cr
     s"      A duplicate in those situations is still surfaced — review and" type cr
@@ -118,12 +120,16 @@ s" " flint.arg 2!
 : flint.version
     cr s" ** (flint) v" type flint-ver-data 2@ type cr cr ;
 
+: flint.scan-file-filtered ( a u -- )
+    2dup flint.path-excluded? IF 2drop EXIT THEN
+    flint.scan-file ;
+
 : flint.lint
     0 flint.warn-count !
     flint.check-required-version
     flint.records-clear
     flint.arg 2@ flint.walk-collect
-    ['] flint.scan-file flint.walk-foreach
+    ['] flint.scan-file-filtered flint.walk-foreach
     cr s" * flint: scanned " type
     flint.records-count @ . s" word definitions" type cr
     flint.report-duplicates

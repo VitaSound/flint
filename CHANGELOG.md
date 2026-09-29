@@ -5,6 +5,13 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.1] - 2026-09-29
+
+### Added
+- `key-list flint-exclude <path>` in the project's `package.4th` skips
+  matching `.4th` files from the duplicate scan (substring match on the
+  full path). Same idea as fcov's `fcov-exclude`.
+
 ## [0.3.0] - 2026-06-08
 
 ### Added

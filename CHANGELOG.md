@@ -5,6 +5,12 @@ All notable changes to flint are documented here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and
 this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.3.2] - 2026-11-21
+
+### Changed
+- Dispatch CLI commands via a dedicated wordlist (`synonym` + `search-wordlist`)
+  instead of a `compare` IF chain in `flint-dispatch`.
+
 ## [0.3.1] - 2026-09-29
 
 ### Added

@@ -139,14 +139,32 @@ s" " flint.arg 2!
         1 (bye)
     THEN ;
 
+\ Look up sd in wid; if found, drop sd, execute the word, return true.
+\ Otherwise leave any1+sd and return false.
+: obey-wordlist? ( any1 sd wid -- any2 true | any1 sd false )
+    >r 2dup r> search-wordlist IF
+        nip nip execute true EXIT
+    THEN false
+;
+
+wordlist constant flint.commands
+get-current flint.commands set-current
+    synonym lint    flint.lint
+    synonym version flint.version
+    synonym help    flint.help
+set-current
+
+: flint.dispatch-command ( sd.command -- )
+    dup 0= IF 2drop flint.help EXIT THEN
+    flint.commands obey-wordlist? IF EXIT THEN
+    cr s" Unknown command: " type type cr
+    flint.help
+    1 (bye)
+;
+
 : flint-dispatch
     flint.read-args
-    flint.cmd 2@ s" lint"    compare 0= IF flint.lint    EXIT THEN
-    flint.cmd 2@ s" version" compare 0= IF flint.version EXIT THEN
-    flint.cmd 2@ s" help"    compare 0= IF flint.help    EXIT THEN
-    cr s" Unknown command: " type flint.cmd 2@ type cr
-    flint.help
-    1 (bye) ;
+    flint.cmd 2@ flint.dispatch-command ;
 
 flint-dispatch
 0 (bye)

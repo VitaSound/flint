@@ -82,6 +82,19 @@ if ! grep -q "Commands:" <<<"$out"; then
 fi
 pass "flint help works"
 
+out=$(bash "$repo_root/bin/flint" nosuchcmd 2>&1)
+status=$?
+if ! grep -q "Unknown command: nosuchcmd" <<<"$out"; then
+    fail "unknown command: expected Unknown command line; got:\n$out"
+fi
+if ! grep -q "Commands:" <<<"$out"; then
+    fail "unknown command: expected help after unknown; got:\n$out"
+fi
+if [ "$status" -eq 0 ]; then
+    fail "unknown command: expected non-zero exit; got $status"
+fi
+pass "unknown command: message + help, non-zero exit"
+
 # --- Case 5: version-check is warn-only ---------------------------------
 #
 # In each of these fixtures the project pins flint in a way the
